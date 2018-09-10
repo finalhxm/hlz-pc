@@ -49,17 +49,18 @@
         </div>
         <!--3.右侧分类列表信息-->
         <div class="col-md-8" id="app-list">
+          <!-- a.全选和分页部分 show when multiple checked -->
           <div class="page-action">
-            <!-- show when multiple checked -->
             <a class="btn btn-danger btn-sm" href="javascript:;" style="display: none">批量删除</a>
           </div>
+          <!--b.列表部分-->
           <table class="table table-striped table-bordered table-hover">
             <thead>
               <tr>
                 <th class="text-center" width="40"><input type="checkbox"></th>
                 <th>名称</th>
                 <th>排序</th>
-                <th class="text-center" width="100">操作</th>
+                <th class="text-center" width="130">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -69,13 +70,74 @@
                 <td>{{type.name}}</td>
                 <td>{{type.sort}}</td>
                 <td class="text-center">
-                  <a href="javascript:;" class="btn btn-info btn-xs">编辑</a>
-                  <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
+                  <a href="javascript:;" class="btn btn-info btn-xs" data-toggle="modal" data-target="#editTypeModal" v-on:click="editInit(type)">编辑</a>
+                  <a href="javascript:;" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#confirmModal" v-on:click="delInit(type)">删除</a>
                 </td>
               </tr>
 
             </tbody>
           </table>
+          <!--c.弹出框 修改分类信息 start-->
+          <div class="modal fade" id="editTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                  </button>
+                  <h4 class="modal-title" id="myModalLabel">
+                    分类信息
+                  </h4>
+                </div>
+                <div class="modal-body">
+                  <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                      <label for="type_name" class="col-sm-3 control-label">名称</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="type_name" v-model="type2.name" placeholder="请输入分类名称">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="type_sort" class="col-sm-3 control-label">排序</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="type_sort" v-model="type2.sort" placeholder="请输入排序">
+                        <input type="text" class="hidden"  v-model="type2.id">
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                  <button type="submit" class="btn btn-primary" v-on:click="edit">确定</button><span id="tip"> </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--c.弹出框 修改分类信息 end-->
+          <!--d.删除确认对话框 start-->
+          <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                  </button>
+                  <h4 class="modal-title">
+                    提示
+                  </h4>
+                </div>
+                <div class="modal-body">
+                  确认删除: {{typeName}}  ?
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                  <button type="submit" class="btn btn-primary" v-on:click="del">确定</button><span id="tip"> </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--d.删除确认对话框 end-->
+
         </div>
       </div>
     </div>
@@ -134,7 +196,6 @@
           },
           methods:{
               add() {
-                  console.log(this.type)
                   url = 'http://localhost:8080/articleType/add',
 
                   axios.post(url, this.type,{
@@ -172,7 +233,66 @@
       new Vue({
           el :'#app-list',
           data:{
-              typeList:{}
+              typeList:{},
+              type:{},
+              type2:{},
+              typeId:'',
+              typeName:''
+          },
+          methods:{
+              editInit(type){
+                  this.type2=type;
+              },
+              edit() {
+                  url = 'http://localhost:8080/articleType/update',
+                  axios.post(url, this.type2,{
+                      transformRequest: [
+                          function (data) {
+                              let params = "";
+                              for(let index in data) {
+                                  params+=index+'='+data[index]+'&';
+                              }
+                              return params.substring(0,params.length-1);
+                          }
+                      ]
+                  } ,{
+                      headers: {
+                          'Content-Type': 'application/x-www-form-urlencoded'
+                      }
+                  })
+                  .then(function (res) {
+                      if (res.data.code == 1) {
+                          location.reload();
+                      }else {
+                          alert(res.data.message);
+                      }
+                  })
+                  .catch(function (error) {
+                      alert("参数异常,操作失败!");
+                  });
+              },
+              delInit(type){
+                  this.typeId = type.id;
+                  this.typeName = type.name;
+              },
+              del(id) {
+                  url = 'http://localhost:8080/articleType/del',
+                      axios.post(url, "id="+this.typeId,{
+                          headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded'
+                          }
+                      })
+                      .then(function (res) {
+                          if (res.data.code == 1) {
+                              location.reload();
+                          }else {
+                              alert(res.data.message);
+                          }
+                      })
+                      .catch(function (error) {
+                          alert("参数异常,操作失败!");
+                      });
+              }
           },
           //created 钩子可以用来在一个实例被创建之后执行代码：
           created: function () {
@@ -182,6 +302,7 @@
               })
           }
       })
+
   </script>
 
 </body>
