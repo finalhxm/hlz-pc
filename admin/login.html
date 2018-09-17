@@ -7,23 +7,52 @@
   <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
 <body>
-  <div class="login">
+  <div class="login" id="app">
     <form class="login-wrap">
       <img class="avatar" src="../assets/img/default.png">
-      <!-- 有错误信息时展示 -->
-      <!-- <div class="alert alert-danger">
-        <strong>错误！</strong> 用户名或密码错误！
-      </div> -->
       <div class="form-group">
-        <label for="email" class="sr-only">邮箱</label>
-        <input id="email" type="email" class="form-control" placeholder="邮箱" autofocus>
+        <label for="name" class="sr-only">用户名</label>
+        <input id="name" type="text" v-model="name" class="form-control" placeholder="用户名" autofocus>
       </div>
       <div class="form-group">
-        <label for="password" class="sr-only">密码</label>
-        <input id="password" type="password" class="form-control" placeholder="密码">
+        <label for="pwd" class="sr-only">密码</label>
+        <input id="pwd" type="password" v-model="pwd" class="form-control" placeholder="密码" @keydown.13="login">
       </div>
-      <a class="btn btn-primary btn-block" href="index.html">登 录</a>
+      <a class="btn btn-primary btn-block" @click="login">登 录</a>
     </form>
   </div>
 </body>
+<script src="../assets/vendors/jquery/jquery.js"></script>
+<script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
+<script src="https://unpkg.com/vue"></script>
+<script src="../assets/vendors/vue/axios.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            // 数据
+            name: '',
+            pwd:'',
+
+            //相关url
+            loginUrl:''
+        },
+        methods: {
+            login() {
+                this.loginUrl = 'http://localhost:8080/user/getToken';
+                axios.post(this.loginUrl, "name=" + this.name + "&pwd=" + this.pwd).then(res => {
+                    if (res.data.code == 0) {
+                        alert(res.data.message);
+                    } else {
+                        let token = res.data.data.token;
+                        alert("登录成功!");
+                        location.href = "articleList.html";
+                    }
+                })
+            }
+        },
+        created: function () {
+        }
+    });
+</script>
 </html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>Categories &laquo; Admin</title>
+    <link rel="stylesheet" href="../assets/vendors/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../assets/vendors/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="../assets/vendors/nprogress/nprogress.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <script src="../assets/vendors/nprogress/nprogress.js"></script>
+</head>
+
+<style>
+
+</style>
+
+<body>
+
+<div class="main" id="app">
+    <nav class="navbar">
+        <button class="btn btn-default navbar-btn fa fa-bars"></button>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="profile.html"><i class="fa fa-user"></i>个人中心</a></li>
+            <li><a href="login.html"><i class="fa fa-sign-out"></i>退出</a></li>
+        </ul>
+    </nav>
+    <div class="container-fluid">
+        <!--1.顶部菜单栏-->
+        <div class="page-title">
+            <h1>分类目录</h1>
+        </div>
+
+        <div class="row">
+            <!--2.左侧添加分类信息-->
+            <div class="col-md-3">
+                <form>
+                    <h2>添加新的分类</h2>
+                    <div class="form-group">
+                        <label for="name">名称</label>
+                        <input type="text" class="form-control" id="name" v-model="type.name" placeholder="分类名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="sort">排序</label>
+                        <input type="text" class="form-control" id="sort" v-model="type.sort" placeholder="排序">
+                    </div>
+                    <div class="form-group">
+                        <input type="button" value="添  加" class="btn btn-primary" @click="add">
+                    </div>
+                </form>
+            </div>
+            <!--3.右侧分类列表信息-->
+            <div class="col-md-9">
+                <!-- a.全选和分页部分 show when multiple checked -->
+                <div class="page-action">
+                    <a class="btn btn-danger btn-sm" href="javascript:;" style="display: none">批量删除</a>
+                </div>
+                <!--b.列表部分-->
+                <div style="display: flex;justify-content: flex-end;margin-bottom: 18px">
+                    <ul class="pagination">
+                        <li>
+                            <a href="#" aria-label="Previous">
+                                <span aria-hidden="true" @click="page(1)">首页</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" aria-label="Previous">
+                                <span aria-hidden="true" @click="page(currentPage==1?1:currentPage-1)">上一页</span>
+                            </a>
+                        </li>
+                        <li v-for="(i,k) in totalPage" :class="currentPage==i?bg:''" v-if="(startPage<=i)&&(i<=endPage)"><a @click="page(i)">{{i}}</a></li>
+                        <li>
+                            <a href="#" aria-label="Next">
+                                <span aria-hidden="true" @click="page(currentPage==totalPage?currentPage:currentPage+1)">下一页</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" aria-label="Previous">
+                                <span aria-hidden="true" @click="page(totalPage)">尾页</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <select class="form-control" style="width: 70px; margin-left: 20px" v-model="pageSize" @change="change">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                    </select>
+                </div>
+
+
+
+
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th class="text-center" width="40"><input type="checkbox"></th>
+                        <th>名称</th>
+                        <th>排序</th>
+                        <th class="text-center" width="130">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <tr v-for="t in typeList">
+                        <td class="text-center"><input type="checkbox"></td>
+                        <td>{{t.name}}</td>
+                        <td>{{t.sort}}</td>
+                        <td class="text-center">
+                            <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#editTypeModal"
+                                    @click="editInit(t)">编辑
+                            </button>
+                            <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#confirmModal"
+                                    @click="delInit(t)">删除
+                            </button>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+                <!--c.弹出框 修改分类信息 start-->
+                <div class="modal fade" id="editTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                    &times;
+                                </button>
+                                <h4 class="modal-title" id="myModalLabel">
+                                    分类信息
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+                                <form class="form-horizontal" role="form">
+                                    <div class="form-group">
+                                        <label for="type_name" class="col-sm-3 control-label">名称</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" id="type_name" v-model="type2.name"
+                                                   placeholder="请输入分类名称">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="type_sort" class="col-sm-3 control-label">排序</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" id="type_sort" v-model="type2.sort"
+                                                   placeholder="请输入排序">
+                                            <input type="text" class="hidden" v-model="type2.id">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                <button type="submit" class="btn btn-primary" @click="edit">确定</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--c.弹出框 修改分类信息 end-->
+                <!--d.删除确认对话框 start-->
+                <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                    &times;
+                                </button>
+                                <h4 class="modal-title">
+                                    提示
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+                                <strong>确认删除:</strong> {{typeName}} ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                <button type="submit" class="btn btn-primary" @click="del">确定</button>
+                                <span id="tip"> </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--d.删除确认对话框 end-->
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--侧边栏-->
+<div class="aside">
+    <div class="profile">
+        <img class="avatar" src="../uploads/avatar.jpg">
+        <h3 class="name">布头儿</h3>
+    </div>
+    <ul class="nav">
+        <li>
+            <a href="index.html"><i class="fa fa-dashboard"></i>仪表盘</a>
+        </li>
+        <li class="active">
+            <a href="#menu-posts" data-toggle="collapse">
+                <i class="fa fa-thumb-tack"></i>文章<i class="fa fa-angle-right"></i>
+            </a>
+            <ul id="menu-posts" class="collapse in">
+                <li><a href="articleList.html">所有文章</a></li>
+                <li><a href="post-add.html">写文章</a></li>
+                <li class="active"><a href="articleType.html">分类目录</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="comments.html"><i class="fa fa-comments"></i>评论</a>
+        </li>
+        <li>
+            <a href="users.html"><i class="fa fa-users"></i>用户</a>
+        </li>
+        <li>
+            <a href="#menu-settings" class="collapsed" data-toggle="collapse">
+                <i class="fa fa-cogs"></i>设置<i class="fa fa-angle-right"></i>
+            </a>
+            <ul id="menu-settings" class="collapse">
+                <li><a href="nav-menus.html">导航菜单</a></li>
+                <li><a href="slides.html">图片轮播</a></li>
+                <li><a href="settings.html">网站设置</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<script src="../assets/vendors/jquery/jquery.js"></script>
+<script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
+<script src="https://unpkg.com/vue"></script>
+<script src="../assets/vendors/vue/axios.min.js"></script>
+<script>
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            // 相关变量
+            typeList: {},
+            type: {},
+            type2: {},
+            typeId: '',
+            typeName: '',
+
+            // 相关url
+            addUrl: '',
+            editUrl: '',
+            listUrl: '',
+            delUrl: '',
+
+            // 分页相关
+            totalCount: '',
+            currentPage: '',
+            pageSize: 5,
+            showPage: 3,
+
+            // 样式
+            bg: 'active'
+        },
+        computed: {
+            //总的分页数量
+            totalPage: function () {
+                return Math.ceil(Number(this.totalCount) / Number(this.pageSize))
+            },
+            startPage: function () {
+                if (this.totalPage <= this.showPage) {
+                    return 1;
+                }
+                if (this.currentPage <= Math.ceil(Number(this.showPage) / 2)) {
+                    return 1;
+                }
+                let start = this.currentPage - (Math.floor(Number(this.showPage) / 2));
+                return start;
+            },
+            endPage: function () {
+                if (this.totalPage <= this.showPage) {
+                    return this.totalPage;
+                }
+                return this.startPage + this.showPage - 1
+            }
+        },
+        methods: {
+            page(i) {
+                if (!i) {
+                    this.currentPage = 1;
+                } else {
+                    this.currentPage = i;
+                }
+                this.listUrl = 'http://localhost:8080/articleType/page';
+                axios.post(this.listUrl, "currentPage=" + this.currentPage + "&pageSize=" + this.pageSize).then(res => {
+                    this.typeList = res.data.data.data
+                    this.totalCount = res.data.data.totalCount
+                    this.currentPage = res.data.data.currentPage
+
+                })
+            },
+            //改变每页数量
+            change(){
+                this.page(1);
+            },
+            add() {
+                this.addUrl = 'http://localhost:8080/articleType/add',
+                    axios.post(this.addUrl, this.type, {
+                        transformRequest: [
+                            function (data) {
+                                let params = "";
+                                for (let index in data) {
+                                    params += index + '=' + data[index] + '&';
+                                }
+                                return params.substring(0, params.length - 1);
+                            }
+                        ]
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    })
+                        .then((res) => {
+                            if (res.data.code == 1) {
+                                this.type = {};
+                                alert(res.data.message);
+                                this.page();
+                            } else {
+                                alert(res.data.message);
+                            }
+                        }, (err) => {
+                            alert(err);
+                        })
+            },
+            editInit(t) {
+                this.type2 = t;
+            },
+            edit() {
+                this.editUrl = 'http://localhost:8080/articleType/update',
+                    axios.post(this.editUrl, this.type2, {
+                        transformRequest: [
+                            function (data) {
+                                let params = "";
+                                for (let index in data) {
+                                    params += index + '=' + data[index] + '&';
+                                }
+                                return params.substring(0, params.length - 1);
+                            }
+                        ]
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    })
+                        .then((res) => {
+                            if (res.data.code == 1) {
+                                this.page();
+                                $("#editTypeModal").modal("hide");
+
+                            } else {
+                                alert(res.data.message);
+                            }
+                        }, (err) => {
+                            alert(err);
+                        })
+            },
+            delInit(type) {
+                this.typeId = type.id;
+                this.typeName = type.name;
+            },
+            del() {
+                this.delUrl = 'http://localhost:8080/articleType/del',
+                    axios.post(this.delUrl, "id=" + this.typeId, {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    })
+                        .then((res) => {
+                            if (res.data.code == 1) {
+                                this.page();
+                                $("#confirmModal").modal("hide");
+                            } else {
+                                alert(res.data.message);
+                            }
+                        }, (err) => {
+                            alert(err);
+                        })
+            }
+        },
+        created: function () {
+            this.page();
+        }
+    });
+
+</script>
+
+</body>
+</html>
