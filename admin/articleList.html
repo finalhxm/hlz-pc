@@ -93,22 +93,23 @@
             <td class="text-center">{{info.createDate}}</td>
             <td class="text-center">{{getStatus(info.status)}}</td>
             <td class="text-center">
-              <button href="javascript:;" class="btn btn-default btn-xs">编辑</button>
-              <button href="javascript:;" class="btn btn-danger btn-xs">删除</button>
+              <button class="btn btn-default btn-xs">编辑</button>
+              <button class="btn btn-danger btn-xs">删除</button>
             </td>
           </tr>
         </tbody>
       </table>
 
-
     </div>
   </div>
 
-  <div class="aside">
+  <div class="aside" id="aside">
     <div class="profile">
       <img class="avatar" src="../uploads/avatar.jpg">
+        <input class="upload" @change='add_img' type="file">
       <h3 class="name">布头儿</h3>
     </div>
+
     <ul class="nav">
       <li>
         <a href="index.html"><i class="fa fa-dashboard"></i>仪表盘</a>
@@ -146,6 +147,7 @@
   <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
   <script src="https://unpkg.com/vue"></script>
   <script src="../assets/vendors/vue/axios.min.js"></script>
+  <script src="../assets/vendors/common.js"></script>
   <script>
       var vm = new Vue({
           el: '#app',
@@ -206,7 +208,7 @@
                   if (!typeId) {
                       typeId = "";
                   }
-                  this.listUrl = 'http://localhost:8080/article/page';
+                  this.listUrl = domain+'/article/page';
                   axios.post(this.listUrl, "currentPage=" + this.currentPage + "&pageSize=" + this.pageSize+"&typeId="+typeId+"&status="+this.statusId).then(res => {
                       this.infoList = res.data.data.data
                       this.totalCount = res.data.data.totalCount
@@ -215,7 +217,7 @@
               },
               //获取所有分类列表
               getTypeList(){
-                  this.typeListUrl='http://localhost:8080/articleType/queryAll';
+                  this.typeListUrl= domain+'/articleType/queryAll';
                   axios.post(this.typeListUrl).then(res => {
                       this.typeList = res.data.data
                   })
@@ -244,6 +246,16 @@
               this.getTypeList();
           }
       });
+      new Vue({
+          el:'#aside',
+          data:{
+          },
+          methods:{
+              add_img(event) {
+                  upload(event);
+              }
+          }
+      })
   </script>
 </body>
 </html>

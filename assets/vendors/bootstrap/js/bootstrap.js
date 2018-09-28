@@ -893,6 +893,11 @@ if (typeof jQuery === 'undefined') {
       paddingLeft:  !this.bodyIsOverflowing && modalIsOverflowing ? this.scrollbarWidth : '',
       paddingRight: this.bodyIsOverflowing && !modalIsOverflowing ? this.scrollbarWidth : ''
     })
+      //hxm  huxm  todo
+      var $modal_dialog = $(this.$element[0]).find('.modal-dialog');
+      var m_top = ( $(document).height() - $modal_dialog.height() )/2;
+      $modal_dialog.css({'margin': m_top + 'px auto'});
+
   }
 
   Modal.prototype.resetAdjustments = function () {

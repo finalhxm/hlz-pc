@@ -26,6 +26,7 @@
 <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
 <script src="https://unpkg.com/vue"></script>
 <script src="../assets/vendors/vue/axios.min.js"></script>
+<script src="../assets/vendors/common.js"></script>
 <script>
     new Vue({
         el: '#app',
@@ -39,14 +40,14 @@
         },
         methods: {
             login() {
-                this.loginUrl = 'http://localhost:8080/user/getToken';
+                this.loginUrl = domain+'/user/getToken';
                 axios.post(this.loginUrl, "name=" + this.name + "&pwd=" + this.pwd).then(res => {
                     if (res.data.code == 0) {
                         alert(res.data.message);
                     } else {
                         let token = res.data.data.token;
-                        alert("登录成功!");
                         location.href = "articleList.html";
+
                     }
                 })
             }

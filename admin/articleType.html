@@ -108,12 +108,8 @@
                         <td>{{t.name}}</td>
                         <td>{{t.sort}}</td>
                         <td class="text-center">
-                            <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#editTypeModal"
-                                    @click="editInit(t)">编辑
-                            </button>
-                            <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#confirmModal"
-                                    @click="delInit(t)">删除
-                            </button>
+                            <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#editTypeModal" @click="editInit(t)">编辑</button>
+                            <button class="btn btn-danger btn-xs" data-toggle="modal" data-target="#confirmModal" @click="delInit(t)">删除</button>
                         </td>
                     </tr>
 
@@ -232,6 +228,7 @@
 <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
 <script src="https://unpkg.com/vue"></script>
 <script src="../assets/vendors/vue/axios.min.js"></script>
+<script src="../assets/vendors/common.js"></script>
 <script>
     var vm = new Vue({
         el: '#app',
@@ -287,7 +284,7 @@
                 } else {
                     this.currentPage = i;
                 }
-                this.listUrl = 'http://localhost:8080/articleType/page';
+                this.listUrl = domain+'/articleType/page';
                 axios.post(this.listUrl, "currentPage=" + this.currentPage + "&pageSize=" + this.pageSize).then(res => {
                     this.typeList = res.data.data.data
                     this.totalCount = res.data.data.totalCount
@@ -300,7 +297,7 @@
                 this.page(1);
             },
             add() {
-                this.addUrl = 'http://localhost:8080/articleType/add',
+                this.addUrl = domain+'/articleType/add',
                     axios.post(this.addUrl, this.type, {
                         transformRequest: [
                             function (data) {
@@ -332,7 +329,7 @@
                 this.type2 = t;
             },
             edit() {
-                this.editUrl = 'http://localhost:8080/articleType/update',
+                this.editUrl = domain+'/articleType/update',
                     axios.post(this.editUrl, this.type2, {
                         transformRequest: [
                             function (data) {
@@ -348,39 +345,39 @@
                             'Content-Type': 'application/x-www-form-urlencoded'
                         }
                     })
-                        .then((res) => {
-                            if (res.data.code == 1) {
-                                this.page();
-                                $("#editTypeModal").modal("hide");
+                    .then((res) => {
+                        if (res.data.code == 1) {
+                            this.page();
+                            $("#editTypeModal").modal("hide");
 
-                            } else {
-                                alert(res.data.message);
-                            }
-                        }, (err) => {
-                            alert(err);
-                        })
+                        } else {
+                            alert(res.data.message);
+                        }
+                    }, (err) => {
+                        alert(err);
+                    })
             },
             delInit(type) {
                 this.typeId = type.id;
                 this.typeName = type.name;
             },
             del() {
-                this.delUrl = 'http://localhost:8080/articleType/del',
+                this.delUrl = domain+'/articleType/del',
                     axios.post(this.delUrl, "id=" + this.typeId, {
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         }
                     })
-                        .then((res) => {
-                            if (res.data.code == 1) {
-                                this.page();
-                                $("#confirmModal").modal("hide");
-                            } else {
-                                alert(res.data.message);
-                            }
-                        }, (err) => {
-                            alert(err);
-                        })
+                    .then((res) => {
+                        if (res.data.code == 1) {
+                            this.page();
+                            $("#confirmModal").modal("hide");
+                        } else {
+                            alert(res.data.message);
+                        }
+                    }, (err) => {
+                        alert(err);
+                    })
             }
         },
         created: function () {
