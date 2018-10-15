@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>Add new post &laquo; Admin</title>
+    <link rel="stylesheet" href="../assets/vendors/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../assets/vendors/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="../assets/vendors/nprogress/nprogress.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/my.css">
+    <script src="../assets/vendors/jquery/jquery.js"></script>
+    <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
+
+    <!-- include summernote css/js -->
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote.css" rel="stylesheet">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote.js"></script>
+    <script src="../assets/vendors/nprogress/nprogress.js"></script>
+</head>
+<body>
+<div class="main" id="app">
+    <nav class="navbar">
+        <button class="btn btn-default navbar-btn fa fa-bars"></button>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="profile.html"><i class="fa fa-user"></i>个人中心</a></li>
+            <li><a href="login.html"><i class="fa fa-sign-out"></i>退出</a></li>
+        </ul>
+    </nav>
+    <div class="container-fluid">
+        <div class="page-title">
+            <h1>文章编辑</h1>
+        </div>
+        <my-hr></my-hr>
+        <!-- 有错误信息时展示 -->
+        <!-- <div class="alert alert-danger">
+          <strong>错误！</strong>发生XXX错误
+        </div> -->
+        <form class="row">
+            <div class="col-md-8">
+                <div class="form-group">
+                    <label for="summernote">文章内容</label>
+                    <textarea id="summernote" name="editordata"></textarea>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="title">标题 <font color="#FF0000">*</font> </label>
+                    <input id="title" class="form-control" v-model="article.title" type="text" placeholder="文章标题">
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">封面图片</label>
+                    <img class="help-block thumbnail" style="display: none">
+                    <input class="form-control" @change='add_img' type="file">
+
+                    <input id="photo" class="hidden" v-model="article.photo" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="category">所属分类 <font color="#FF0000">*</font></label>
+                    <select id="category" class="form-control input-sm" style="width: 120px;" v-model="article.typeId">
+                        <option value="" disabled selected hidden>--文章分类--</option>
+                        <option v-for="type in typeList"  :value="type.id">{{type.name}}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">状态</label>
+                    <select id="status" class="form-control input-sm" style="width: 120px;" v-model="article.status">
+                        <option value="" disabled selected hidden>--发布状态--</option>
+                        <option v-for="status in statusList"  :value="status.k">{{getStatus(status.k)}}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" @click="edit($event)">保存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--侧边栏-->
+<div class="aside" id="aside">
+    <my-aside></my-aside>
+</div>
+
+
+<script src="https://unpkg.com/vue"></script>
+<script src="../assets/vendors/vue/axios.min.js"></script>
+<script src="../assets/vendors/common.js"></script>
+<script>
+    // $(document).ready(function () {
+    //     $('#summernote').summernote({
+    //         placeholder: '请输入内容！',
+    //         tabsize: 2,
+    //         height: 300,
+    //         callbacks: {
+    //             onImageUpload: function (files) {
+    //                 sendFile(files);
+    //             }
+    //         }
+    //     });
+    // });
+
+    //富文本图片上传
+    function sendFile(files) {
+        let form = new FormData();
+        form.append("file", files[0]);
+        let uploadUrl = domain + '/file/upload';
+        axios.post(uploadUrl, form, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        }).then(response => {
+            let url = response.data.data;
+            $('#summernote').summernote('insertImage', url);
+        }).catch(error => {
+            alert('上传图片出错！');
+        })
+    }
+
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            //相关变量
+            typeId:'',
+            typeList:{},
+            statusId:'',
+            statusList:[
+                {k: 1, v: '草稿'},
+                {k: 2, v: '后台'},
+                {k: 3, v: '游客'}
+            ],
+            article:{
+                id:'',
+                typeId:'',
+                status:'',
+                title:'',
+                detail:'',
+                sort:'',
+                photo:''
+            },
+
+            //修改时带过来的
+            articleId:'',
+
+            //相关rl
+            editUrl:'',
+            listUrl: '',
+            typeListUrl:'',
+            queryOneUrl:'',
+
+
+        },
+
+        methods: {
+            //查询单个对象
+           async  queryOne(id){
+                this.queryOneUrl= domain+'/article/queryOne';
+               const res = await axios.post(this.queryOneUrl, "id=" + id)
+                this.article = res.data.data;
+                this.article.id=res.data.data.id;
+                this.article.typeId = res.data.data.typeId;
+                this.article.status = res.data.data.status;
+                this.article.title = res.data.data.title;
+                this.article.detail = res.data.data.detail;
+                this.article.sort = res.data.data.sort;
+                this.article.photo = res.data.data.photo;
+
+            },
+
+            //获取所有分类列表
+            getTypeList(){
+                this.typeListUrl= domain+'/articleType/queryAll';
+                axios.post(this.typeListUrl).then(res => {
+                    this.typeList = res.data.data
+                })
+            },
+            //获取文章状态
+            getStatus(status) {
+                const info  = this.statusList.find((item,index)=>{
+                    return item.k === status
+                })
+                return info.v;
+            },
+            // 上传照片
+            add_img(event) {
+                //内部函数
+                var test = upload(event);
+                new Promise(test).then(function (result) {
+                    vm.article.photo = result;
+                }).catch(function (reason) {
+                    console.log('失败：' + reason);
+                });
+            },
+            // 新增/修改
+            edit(e) {
+                //禁止刷新
+                e.preventDefault();
+
+                // let detail = $("#summernote").val();
+                let detail = $(".note-editable")[0].innerHTML;
+
+                this.article.detail = detail;
+
+                if (!this.article.typeId) {
+                    alert("请选择分类!")
+                    return false
+                }
+                if (!this.article.title) {
+                    alert("请填写文章标题!")
+                    return false
+                }
+                if (!this.article.detail) {
+                    alert("请填写文章详情!")
+                    return false
+                }
+
+                if (this.article.id!=''&&this.article.id!=null) {
+                    this.editUrl = domain + '/article/update';
+                } else {
+                    this.editUrl = domain + '/article/add';
+                }
+                if (!this.article.sort) {
+                    this.article.sort = '';
+                }
+                axios.post(this.editUrl, this.article, {
+                    transformRequest: [
+                        function (data) {
+                            let params = "";
+                            for (let index in data) {
+                                params += index + '=' + data[index] + '&';
+                            }
+                            return params.substring(0, params.length - 1);
+                        }
+                    ]
+                }, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                .then((res) => {
+                    if (res.data.code == 1) {
+                        alert("操作成功!");
+                        window.location.href = "articleList.html";
+                    } else {
+                        alert(res.data.message);
+                    }
+                }, (err) => {
+                    alert(err);
+                });
+            },
+
+        },
+        created: function () {
+            this.getTypeList();
+
+
+        },
+        mounted: function () {
+            $('#summernote').summernote({
+                placeholder: '',
+                tabsize: 2,
+                height: 300,
+                callbacks: {
+                    onImageUpload: function (files) {
+                        sendFile(files);
+                    }
+                }
+            });
+
+            let tempArticleId = localStorage.getItem("articleId");
+            this.articleId = tempArticleId;
+            if (tempArticleId) {
+                //走到这里，说明是从列表页面带过来的，需要回显数据的
+                //a.先把这个缓存清空
+                localStorage.setItem("articleId", "");
+                //b.查询单个数据做回显
+                this.queryOne(this.articleId).then(() => {
+
+                    $(".note-editable")[0].innerHTML=this.article.detail;
+                    // $("#summernote").innerHTML(this.article.detail);
+                });
+            }
+
+
+        }
+
+    });
+</script>
+</body>
+</html>
