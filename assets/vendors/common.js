@@ -1,6 +1,7 @@
 ///////////////////全局变量 start///////////////////////
 // 域名
 var domain='http://localhost:8080';
+// var domain='http://118.25.7.46';
 
 // 对象形式
 var obj = {

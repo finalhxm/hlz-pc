@@ -193,8 +193,24 @@
                 //禁止刷新
                 e.preventDefault();
 
-                // let detail = $("#summernote").val();
-                let detail = $(".note-editable")[0].innerHTML;
+                let detail = $("#summernote").val();
+                // let detail = $(".note-editable")[0].innerHTML;
+
+                // detail = detail.replace(/:/g, '<br/>');
+                // detail = detail.replace(/：/g, '<br/>');
+                // detail = detail.replace(/:/g, '<br/>');
+
+                console.log(detail);
+                console.log("-----------------");
+                detail = detail.replace(/:/g, '<br/>');
+                detail = detail.replace(/nbsp;/g, ' ');
+                detail = detail.replace(/:/g, ' ');
+                detail = detail.replace(/：/g, '<br/>');
+                detail = detail.replace(/: /g, '<br/>');
+
+                console.log(detail);
+
+
 
                 this.article.detail = detail;
 
@@ -237,7 +253,7 @@
                 .then((res) => {
                     if (res.data.code == 1) {
                         alert("操作成功!");
-                        window.location.href = "articleList.html";
+                        // window.location.href = "articleList.html";
                     } else {
                         alert(res.data.message);
                     }
